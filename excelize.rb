@@ -42,7 +42,6 @@ class Excelize
     # fuzzy_match = FuzzyMatch.new(@file).find_all str
     @all_matches = []
 
-
     @file.each_with_index do |file, index|
       jaro_winkler = JaroWinkler.new str
       
@@ -79,8 +78,8 @@ class Excelize
       FileUtils.mv(temp.path, @filename)
     end
     delete_messages.each { |msg| puts "Deleted: #{msg}" }
+    @all_matches.clear
     initialize(@filename)
-
   end
 
   def delete_matches
@@ -90,7 +89,7 @@ class Excelize
       delete matched_indices
       @all_matches.clear
     else
-      "No match yet"
+      "No matches found yet"
     end
 
   end
