@@ -29,6 +29,10 @@ class Excelize
     (0...num).each { |index| puts @file[index].to_s.chomp }
   end
 
+  def show(num)
+    @file.values_at(num-1).join.chomp
+  end
+
   def total
     @file.size
   end
@@ -41,9 +45,9 @@ class Excelize
     @file.each_with_index do |file, index|
       hamming = Hamming.new str
       
-      if hamming.match(file.to_s) <= 10
+      if hamming.match(file.to_s) <= 20
         file_match = file.to_s.chomp.scan(to_regex(str))
-        if !file_match.empty? && match_score(file_match.size, str.split.size).between?(75, 100)
+        if !file_match.empty? && match_score(file_match.size, str.split.size).between?(50, 100)
           @all_matches << "#{index}: #{file.to_s.chomp}"
         end
       end
@@ -56,7 +60,7 @@ class Excelize
     begin
       temp = Tempfile.new("temp")
 
-      args.reverse_each do |index|
+      args.flatten.reverse_each do |index|
         @file.delete index
       end
 
@@ -66,7 +70,7 @@ class Excelize
       end
 
     rescue Exception => e
-      puts "An error has occured"
+      puts "An error has occured: #{e}"
     ensure
       temp.close
       FileUtils.mv(temp.path, @filename)
@@ -77,6 +81,14 @@ class Excelize
   end
 
   def delete_matches
+
+    if !@all_matches.empty?
+      matched_indices = @all_matches.map { |match| match.scan(/^\d+/).first.to_i }
+      delete matched_indices
+      @all_matches.clear
+    else
+      "No match yet"
+    end
 
   end
 
