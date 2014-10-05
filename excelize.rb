@@ -1,9 +1,6 @@
 class Excelize
-  require 'roo'
-  require 'fuzzy_match'
   require 'csv'
   require 'amatch'
-  require 'pry'
   require 'tempfile'
   require 'fileutils'
 
@@ -26,7 +23,11 @@ class Excelize
   end
 
   def show_lines(num = 1)
-    (0...num).each { |index| puts @file[index].to_s.chomp }
+    if num.is_a? Range
+      num.each { |index| puts @file[index].to_s.chomp }
+    else
+      (0...num).each { |index| puts @file[index].to_s.chomp }
+    end
   end
 
   def show(num)
@@ -59,8 +60,10 @@ class Excelize
   def delete(*args)
     begin
       temp = Tempfile.new("temp")
+      delete_messages = []
 
       args.flatten.reverse_each do |index|
+        delete_messages << @file.values_at(index - 1).join.chomp
         @file.delete index - 1
       end
 
@@ -75,7 +78,7 @@ class Excelize
       temp.close
       FileUtils.mv(temp.path, @filename)
     end
-
+    delete_messages.each { |msg| puts "Deleted: #{msg}" }
     initialize(@filename)
 
   end
