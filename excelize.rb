@@ -1,0 +1,95 @@
+class Excelize
+  require 'roo'
+  require 'fuzzy_match'
+  require 'csv'
+  require 'amatch'
+  require 'pry'
+  require 'tempfile'
+  require 'fileutils'
+
+  include Amatch
+
+  def initialize(filename)
+    @file = CSV.read(filename, headers: true, encoding: 'ISO-8859-1')
+    @filename = filename
+    @keyword_list = []
+    @file.each do |file|
+      @keyword_list << file.to_s.chomp
+    end
+    # puts FuzzyMatch.new(filename).find match
+  end
+
+  def show_all
+    @file.each do |csv|
+      puts csv.to_s.chomp
+    end
+  end
+
+  def show_lines(num = 1)
+    (0...num).each { |index| puts @file[index].to_s.chomp }
+  end
+
+  def total
+    @file.size
+  end
+
+  def matches(str)
+    # fuzzy_match = FuzzyMatch.new(@file).find_all str
+    @all_matches = []
+
+
+    @file.each_with_index do |file, index|
+      hamming = Hamming.new str
+      
+      if hamming.match(file.to_s) <= 10
+        file_match = file.to_s.chomp.scan(to_regex(str))
+        if !file_match.empty? && match_score(file_match.size, str.split.size).between?(75, 100)
+          @all_matches << "#{index}: #{file.to_s.chomp}"
+        end
+      end
+    end
+
+    @all_matches
+  end
+
+  def delete(*args)
+    begin
+      temp = Tempfile.new("temp")
+
+      args.reverse_each do |index|
+        @file.delete index
+      end
+
+      temp.puts @file.headers.join
+      @file.each do |file|
+        temp.puts file
+      end
+
+    rescue Exception => e
+      puts "An error has occured"
+    ensure
+      temp.close
+      FileUtils.mv(temp.path, @filename)
+    end
+
+    initialize(@filename)
+
+  end
+
+  def delete_matches
+
+  end
+
+  private
+
+  def to_regex(pattern_string)
+    /(#{pattern_string.gsub(' ', '|')})/
+  end
+
+  def match_score(numerator, denominator)
+    (numerator / denominator) * 100
+  end
+
+
+
+end
