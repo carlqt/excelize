@@ -43,12 +43,12 @@ class Excelize
 
 
     @file.each_with_index do |file, index|
-      hamming = Hamming.new str
+      jaro_winkler = JaroWinkler.new str
       
-      if hamming.match(file.to_s) <= 20
+      if jaro_winkler.match(file.to_s).between?(0.75, 1)
         file_match = file.to_s.chomp.scan(to_regex(str))
         if !file_match.empty? && match_score(file_match.size, str.split.size).between?(50, 100)
-          @all_matches << "#{index}: #{file.to_s.chomp}"
+          @all_matches << "#{index + 1}: #{file.to_s.chomp}"
         end
       end
     end
@@ -61,7 +61,7 @@ class Excelize
       temp = Tempfile.new("temp")
 
       args.flatten.reverse_each do |index|
-        @file.delete index
+        @file.delete index - 1
       end
 
       temp.puts @file.headers.join
